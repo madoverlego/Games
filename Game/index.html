@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the Item! - Welcome</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #111827; /* gray-900 */
+            font-family: sans-serif;
+            color: #e5e7eb; /* gray-200 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        #welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            box-sizing: border-box;
+            min-height: calc(100vh - 2rem); /* Account for body padding */
+        }
+
+        #welcome-screen h1 {
+            font-size: 3rem; /* Larger title */
+            font-weight: bold;
+            color: #a78bfa; /* purple-400 */
+            margin-bottom: 2rem;
+        }
+
+        #welcome-screen a { /* Changed button to anchor tag for linking */
+            background-color: #8b5cf6; /* purple-600 */
+            color: white;
+            font-weight: 600; /* font-semibold */
+            padding: 1rem 2rem; /* Larger padding */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            font-size: 1.25rem; /* Larger font size */
+            text-decoration: none; /* Remove underline from link */
+            display: inline-block; /* Allow padding and transform */
+        }
+
+        #welcome-screen a:hover {
+            background-color: #7c3aed; /* purple-700 */
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div id="welcome-screen">
+        <h1>Guess the Item!</h1>
+        <a href="game.html">Start Game</a>
+    </div>
+</body>
+</html>

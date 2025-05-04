@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the Item! - Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #111827; /* gray-900 */
+            font-family: sans-serif;
+            color: #e5e7eb; /* gray-200 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        #game-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+            min-height: calc(100vh - 2rem); /* Account for body padding */
+            /* Removed position: relative; */
+        }
+
+        /* Custom CSS for animations */
+        #streak-container {
+            transition: color 0.3s ease-in-out, transform 0.3s ease-in-out; /* Smooth transitions */
+        }
+        .streak-animation-1 {
+            animation: pulse 1s infinite alternate;
+        }
+        .streak-animation-2 {
+            animation: bounce 0.5s infinite alternate;
+        }
+        .streak-animation-3 {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Style for lives display */
+        .life {
+            position: relative;
+            display: inline-block;
+            margin: 0 2px; /* Reduced margin */
+            font-size: 1.5rem; /* Smaller size */
+        }
+
+        .life .skull {
+            color: #f3f4f6; /* gray-100 */
+        }
+
+        .life .red-x {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ef4444; /* red-500 */
+            font-size: 1.8rem; /* Adjusted size of X */
+            font-weight: bold;
+            display: none; /* Hidden by default */
+        }
+
+        .life.lost .red-x {
+            display: block; /* Show when life is lost */
+        }
+
+        /* Ensure input placeholder text is visible on dark background */
+        input::placeholder {
+            color: #a0aec0; /* gray-500 */
+        }
+
+        /* Style for the win message */
+        .win-message {
+            font-size: 2.5rem; /* text-3xl */
+            font-weight: bold;
+            color: #34d399; /* green-400 */
+            margin-bottom: 1rem;
+        }
+
+        /* Positioning for streak and lives - Using fixed position */
+        #streak-container {
+            position: fixed; /* Changed to fixed */
+            top: 10px; /* Adjusted top */
+            right: 10px; /* Adjusted right */
+            z-index: 20; /* Ensure it's above other content */
+        }
+
+        #lives-container {
+            position: fixed; /* Changed to fixed */
+            top: 60px; /* Adjusted top to be lower */
+            right: 10px; /* Adjusted right */
+            z-index: 20; /* Ensure it's above other content */
+        }
+
+    </style>
+</head>
+<body>
+    <div id="game-content">
+
+        <div id="streak-container" class="text-lg font-bold p-3 rounded-lg bg-gray-700 shadow-md border border-gray-600 text-gray-100">
+            Streak: <span id="correct-streak" class="ml-1">0</span>
+        </div>
+
+        <div id="lives-container" class="flex">
+            <div class="life" id="life-1">
+                <span class="skull">💀</span>
+                <span class="red-x">✕</span>
+            </div>
+            <div class="life" id="life-2">
+                <span class="skull">💀</span>
+                <span class="red-x">✕</span>
+            </div>
+            <div class="life" id="life-3">
+                <span class="skull">💀</span>
+                <span class="red-x">✕</span>
+            </div>
+        </div>
+
+
+        <div class="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-lg text-center border border-gray-700">
+            <h1 class="text-3xl sm:text-4xl font-bold text-purple-400 mb-6">Guess the Item!</h1>
+
+            <div id="headline-container" class="mb-6 min-h-[3em]">
+                <p id="headline" class="text-lg sm:text-xl text-gray-300 italic">Loading prompt...</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+                <input type="text" id="user-guess" placeholder="Your guess" class="flex-grow p-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full sm:w-auto bg-gray-700 text-gray-100 placeholder-gray-500">
+                <button id="submit-guess" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105">
+                    Submit Guess
+                </button>
+            </div>
+
+            <div id="guess-feedback-message" class="mt-4 text-md sm:text-lg font-medium min-h-[1.5em]"></div>
+
+            <a href="index.html" id="return-to-menu-button-game" class="mt-6 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-5 rounded-lg shadow transition duration-200 ease-in-out inline-block">
+                Return to Main Menu
+            </a>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get references to DOM elements
+            const headlineElement = document.getElementById('headline');
+            const guessInput = document.getElementById('user-guess');
+            const submitButton = document.getElementById('submit-guess');
+            const guessFeedbackMessage = document.getElementById('guess-feedback-message');
+            const streakContainer = document.getElementById('streak-container');
+            const correctStreakElement = document.getElementById('correct-streak');
+            const livesContainer = document.getElementById('lives-container');
+            const lifeElements = [
+                document.getElementById('life-1'),
+                document.getElementById('life-2'),
+                document.getElementById('life-3')
+            ];
+
+            // List of prompts and their possible correct answers
+            const promptsWithAnswers = [
+                {"headline": "Self-Propelled Wheeled Conveyance with Seating Accommodation.", "answers": ["car", "automobile", "vehicle"] },
+                {"headline": "Digitally Interfaced Visual Display Unit.", "answers": ["screen", "monitor", "display"] },
+                {"headline": "Flexible Tubular Conduit for Fluid Transfer.", "answers": ["hose", "tube", "pipe"] },
+                {"headline": "Woven Footwear for Terrestrial Locomotion.", "answers": ["shoe", "sneaker", "boot", "footwear"] },
+                {"headline": "Cylindrical Instrument for Marking Surfaces with Pigment.", "answers": ["pen", "marker", "writing utensil"] },
+                {"headline": "Fabricated Barrier for Light Modulation and Privacy.", "answers": ["curtain", "drape", "blind", "window covering"] },
+                {"headline": "Brain-activating sweet roasted bean stew.", "answers": ["coffee"] },
+                {"headline": "Pair of lengthy sleeves conjoining at zipper", "answers": ["pants", "trousers"] },
+                {"headline": "Proprietary scenic encapturement technology", "answers": ["camera"] },
+                {"headline": "Racist battle won through mental cognition", "answers": ["chess"] },
+                {"headline": "Proprietary acoustic output solution", "answers": ["speaker", "speakers", "sound system", "sound systems"]},
+                {"headline": "Personal mobile digital interface technology", "answers": ["phone", "phones", "mobile phone", "mobile phones", "cell phone", "cell phones", "smartphone", "smartphones"]},
+                {"headline": "Flexible linear footwear fastening technology", "answers": ["shoelace", "shoelaces", "laces"]},
+                {"headline": "Transparent environmental control barrier system", "answers": ["window", "windows", "pane", "panes", "casement", "casements"]},
+                {"headline": "Articulated ergonomic seating platform", "answers": ["chair", "chairs", "seat", "seats", "stool", "stools"]},
+                {"headline": "Bound codified information repository unit", "answers": ["book", "books", "tome", "tomes", "volume", "volumes"]},
+                {"headline": "Mechanical access control instrument", "answers": ["key", "keys"]},
+                {"headline": "Graphite-based temporary marking technology", "answers": ["pencil", "pencils"]},
+                {"headline": "Potable liquid flow regulation interface", "answers": ["faucet", "faucets", "tap", "taps"]},
+                {"headline": "Advanced textile terrestrial covering solution", "answers": ["carpet", "carpets", "rug", "rugs"]},
+                {"headline": "Cranial support module for low-activity states", "answers": ["pillow", "pillows", "cushion", "cushions"]},
+                {"headline": "Movable access point control system", "answers": ["door", "doors", "gateway", "gateways", "portal", "portals"]},
+                {"headline": "Electric radiant energy emission technology", "answers": ["light", "lights", "lamp", "lamps", "lighting fixture", "lighting fixtures"]},
+                {"headline": "Elevated multi-purpose horizontal surface", "answers": ["table", "tables", "desk", "desks"]},
+                {"headline": "Thermal insulated beverage containment unit", "answers": ["mug", "mugs", "cup", "cups"]},
+                {"headline": "Multi-pronged solid sustenance conveyance tool", "answers": ["fork", "forks", "prong", "prongs"]},
+                {"headline": "Sharp-edged material division technology", "answers": ["knife", "knives", "blade", "blades", "cutter", "cutters"]},
+                {"headline": "Curved liquid or semi-solid holding vessel", "answers": ["bowl", "bowls"]},
+                {"headline": "Self-propelled wheeled transit technology", "answers": ["car", "cars", "automobile", "automobiles", "vehicle", "vehicles"]},
+                {"headline": "Flexible high-tensile binding material", "answers": ["rope", "ropes", "cord", "cords", "string", "strings"]},
+                {"headline": "Manual botanical hydration delivery system", "answers": ["watering can", "watering cans"]},
+                {"headline": "Optical visual correction technology", "answers": ["glasses", "spectacles", "eyeglasses"]},
+                {"headline": "Circumferential garment retention accessory", "answers": ["belt", "belts", "sash", "sashes"]},
+                {"headline": "Removable closure for container aperture", "answers": ["lid", "lids", "cover", "covers"]},
+                {"headline": "Programmable electronic data processing technology", "answers": ["computer", "computers", "processor", "processors", "CPU", "CPUs"]},
+                {"headline": "Absorbent moisture wicking textile", "answers": ["towel", "towels", "cloth", "cloths"]},
+                {"headline": "Combustible illumination technology with controlled burn", "answers": ["candle", "candles", "taper", "tapers"]},
+                {"headline": "Pivoting dual-action cutting implement", "answers": ["scissors", "shears"]},
+                {"headline": "Flat circular food presentation platform", "answers": ["plate", "plates", "dish", "dishes"]},
+                {"headline": "Transparent cylindrical liquid intake vessel", "answers": ["glass", "glasses", "tumbler", "tumblers"]},
+                {"headline": "Standardized metallic transactional unit", "answers": ["coin", "coins", "specie", "species"]},
+                {"headline": "Printed monetary value representation", "answers": ["bill", "bills", "banknote", "banknotes"]},
+                {"headline": "Personal financial instrument repository", "answers": ["wallet", "wallets", "billfold", "billfolds", "purse", "purses"]},
+                {"headline": "Dorsal personal effects transport system", "answers": ["backpack", "backpacks", "rucksack", "rucksacks"]},
+                {"headline": "Rigid portable garment transit case", "answers": ["suitcase", "suitcases", "luggage", "bag", "bags"]},
+                {"headline": "Flexible foot covering and protection", "answers": ["sock", "socks", "hosiery"]},
+                {"headline": "Upper body thermal regulation garment", "answers": ["jacket", "jackets", "coat", "coats"]},
+                {"headline": "Bifurcated lower limb covering system", "answers": ["trousers", "pants"]},
+                {"headline": "Torso covering textile product", "answers": ["shirt", "shirts", "blouse", "blouses", "top", "tops"]},
+                {"headline": "Cervical region thermal or aesthetic fabric", "answers": ["scarf", "scarves", "shawl", "shawls"]},
+                {"headline": "Brimmed cranial covering unit", "answers": ["hat", "hats", "cap", "caps"]},
+                {"headline": "Articulated manual protective wear", "answers": ["glove", "gloves", "mitten", "mittens"]},
+                {"headline": "Temporal measurement and display technology", "answers": ["clock", "clocks", "watch", "watches", "timepiece", "timepieces"]},
+                {"headline": "Reflective surface imaging technology", "answers": ["mirror", "mirrors", "looking glass", "looking glasses"]},
+                {"headline": "Flexible conduit for fluid transfer", "answers": ["hose", "hoses", "tube", "tubes", "pipe", "pipes"]},
+                {"headline": "Impaction-based material joining fastener", "answers": ["nail", "nails"]},
+                {"headline": "Rotational helical fastening component", "answers": ["screw", "screws", "bolt", "bolts"]},
+                {"headline": "Rotational fastener application tool", "answers": ["screwdriver", "screwdrivers", "wrench", "wrenches", "spanner", "spanners"]},
+                {"headline": "Opposable jaw gripping technology", "answers": ["pliers", "pincers", "wrench", "wrenches"]},
+                {"headline": "Protective visual safety apparatus", "answers": ["goggles", "safety glasses"]},
+                {"headline": "Weighted head percussive tool", "answers": ["hammer", "hammers", "mallet", "mallets"]},
+                {"headline": "Light-sensitive image recording medium", "answers": ["film", "photographic film"]},
+                {"headline": "Molecular bonding agent substance", "answers": ["glue", "adhesive", "paste"]},
+                {"headline": "Wax or pigment based marking stick", "answers": ["crayon", "crayons", "colored pencil", "colored pencils", "marker", "markers"]},
+                {"headline": "Liquid surface coloration technology", "answers": ["paint", "coating", "pigment"]},
+                {"headline": "Liquid pigment application tool", "answers": ["brush", "brushes", "roller", "rollers"]},
+                {"headline": "Crystalline sodium chloride compound", "answers": ["salt", "sodium chloride"]},
+                {"headline": "Crystalline carbohydrate sweetening agent", "answers": ["sugar", "sucrose"]},
+                {"headline": "Dried aromatic botanical food additive", "answers": ["spice", "spices", "herb", "herbs"]},
+                {"headline": "Lipid-based culinary medium", "answers": ["oil", "fat", "grease"]},
+                {"headline": "Fermented dairy protein product", "answers": ["yogurt", "yoghurt"]},
+                {"headline": "Coagulated and aged milk solid", "answers": ["cheese", "cheeses"]},
+                {"headline": "Avian reproductive nutrient package", "answers": ["egg", "eggs"]},
+                {"headline": "Cocoa-derived sweet edible material", "answers": ["chocolate", "cocoa"]},
+                {"headline": "Frozen dairy or water-based dessert", "answers": ["ice cream", "gelato"]},
+                {"headline": "Baked leavened grain product", "answers": ["bread", "loaf", "loaves", "rolls"]},
+                {"headline": "Flat baked confectionery item", "answers": ["cookie", "cookies", "biscuit", "biscuits"]},
+                {"headline": "Baked sweet batter or dough product", "answers": ["cake", "cakes", "pastry", "pastries"]},
+                {"headline": "Carbonated flavored potable solution", "answers": ["soda", "sodas", "pop", "fizzy drink", "fizzy drinks"]},
+                {"headline": "Brewed roasted seed beverage", "answers": ["coffee", "java", "brew"]},
+                {"headline": "Infused dried botanical beverage", "answers": ["tea", "brew"]},
+                {"headline": "Fermented cereal grain beverage technology", "answers": ["beer", "ale", "lager"]},
+                {"headline": "Fermented fruit alcoholic beverage", "answers": ["wine", "vino"]},
+                {"headline": "Distilled high-proof potable spirit", "answers": ["spirit", "spirits", "liquor"]},
+                {"headline": "Solid phase H₂O crystalline structure", "answers": ["ice", "ice cube", "ice cubes"]},
+                {"headline": "Planetary natural orbiting satellite", "answers": ["moon", "moons", "satellite", "satellites"]},
+                {"headline": "Distant self-luminous plasma entity", "answers": ["star", "stars", "sun"]},
+                {"headline": "Spherical celestial body in stellar orbit", "answers": ["planet", "planets", "world", "worlds"]},
+                {"headline": "Gravitationally bound stellar system cluster", "answers": ["galaxy", "galaxies"]},
+                {"headline": "The entirety of spacetime and its contents", "answers": ["universe", "cosmos"]},
+                {"headline": "Fundamental attractive force technology", "answers": ["gravity", "gravitation"]},
+                {"headline": "Study of matter and its transformations", "answers": ["chemistry"]},
+                {"headline": "Study of energy, force, and motion", "answers": ["physics"]},
+                {"headline": "Scientific study of biological systems", "answers": ["biology"]},
+                {"headline": "Study of Earth's physical structure and processes", "answers": ["geology"]},
+                {"headline": "Study of atmospheric phenomena and climate", "answers": ["meteorology"]},
+                {"headline": "Scientific study of celestial bodies", "answers": ["astronomy"]},
+                {"headline": "Analysis of past temporal events", "answers": ["history"]},
+                {"headline": "Study of human social structures and interactions", "answers": ["sociology"]},
+                {"headline": "Scientific study of cognitive and behavioral processes", "answers": ["psychology"]},
+                {"headline": "Proposed explanatory framework for observations", "answers": ["theory", "hypothesis", "principle", "principles"]},
+                {"headline": "Controlled investigative procedure", "answers": ["experiment", "experiments", "test", "tests", "trial", "trials"]},
+                {"headline": "Evidence-based logical deduction", "answers": ["inference", "inferences", "deduction", "deductions", "conclusion", "conclusions"]},
+                {"headline": "Abstract cognitive construct", "answers": ["idea", "ideas", "concept", "concepts", "thought", "thoughts"]},
+                {"headline": "Subjective affective state", "answers": ["emotion", "emotions", "feeling", "feelings", "sentiment", "sentiments"]},
+                {"headline": "State of positive subjective experience", "answers": ["happiness", "joy", "contentment", "bliss"]},
+                {"headline": "Negative sensory or emotional experience", "answers": ["pain", "suffering", "ache", "soreness"]},
+                {"headline": "Intense feeling of antagonism", "answers": ["anger", "rage", "fury", "wrath"]},
+                {"headline": "Deep positive emotional connection", "answers": ["love", "affection", "fondness", "devotion"]},
+                {"headline": "Strong inclination or craving", "answers": ["desire", "want", "craving", "wish"]},
+                {"headline": "Belief in reliability or truth", "answers": ["confidence", "trust", "faith", "belief"]},
+                {"headline": "Feeling of high regard or approval", "answers": ["respect", "admiration", "esteem", "regard"]},
+                {"headline": "State of autonomy and self-determination", "answers": ["freedom", "liberty", "independence"]},
+                {"headline": "Principle of fairness and equity", "answers": ["justice", "fairness", "equity"]},
+                {"headline": "Absence of conflict or disturbance", "answers": ["peace", "calm", "tranquility", "serenity"]},
+                {"headline": "Binding requirement or duty", "answers": ["duty", "obligation", "responsibility"]},
+                {"headline": "Process of knowledge acquisition", "answers": ["learning", "education", "study", "training"]},
+                {"headline": "Goal-directed effort or activity", "answers": ["work", "labor", "toil", "effort"]},
+                {"headline": "Movement across geographical locations", "answers": ["travel", "journey", "trip", "voyage"]},
+                {"headline": "Ingestion of sustenance", "answers": ["eating", "dining", "consuming", "ingesting"]},
+                {"headline": "Oral fluid consumption", "answers": ["drinking", "imbibing", "sipping", "gulping"]},
+                {"headline": "Verbal communication exchange", "answers": ["talking", "speaking", "conversing", "chatting"]},
+                {"headline": "Vocal melody production", "answers": ["singing", "vocalizing", "crooning", "harmonizing"]},
+                {"headline": "Rhythmic bodily movement performance", "answers": ["dancing", "boogieing", "grooving", "swaying"]},
+                {"headline": "Linear graphic representation creation", "answers": ["drawing", "sketching", "doodling", "rendering"]},
+                {"headline": "Surface color application process", "answers": ["painting", "coloring", "coating"]},
+                {"headline": "Alphanumeric symbol inscription", "answers": ["writing", "typing", "scribing", "composing"]},
+                {"headline": "Written character interpretation", "answers": ["reading", "perusing", "scanning", "deciphering"]},
+                {"headline": "Auditory sensory input processing", "answers": ["hearing", "listening", "auditioning", "perceiving sound"]},
+                {"headline": "Visual sensory input processing", "answers": ["seeing", "viewing", "observing", "watching"]},
+                {"headline": "Olfactory sensory input processing", "answers": ["smelling", "sniffing", "detecting odor"]},
+                {"headline": "Tactile sensory input processing", "answers": ["touching", "feeling", "palpating", "making contact"]},
+                {"headline": "Gustatory sensory input processing", "answers": ["tasting", "sampling", "savoring", "consuming"]},
+                {"headline": "Reduced awareness resting state", "answers": ["sleeping", "slumbering", "napping", "resting"]},
+                {"headline": "Aquatic locomotion technique", "answers": ["swimming", "paddling", "stroking", "gliding"]},
+                {"headline": "Standard bipedal locomotion", "answers": ["walking", "strolling", "ambling", "marching"]},
+                {"headline": "High-speed bipedal locomotion", "answers": ["running", "sprinting", "jogging", "dashing"]},
+                {"headline": "Vertical displacement propulsion", "answers": ["jumping", "leaping", "hopping", "bounding"]},
+                {"headline": "Vertical surface ascent technique", "answers": ["climbing", "ascending", "scaling", "mounting"]},
+                {"headline": "Gravitational unpowered descent", "answers": ["falling", "dropping", "plummeting"]},
+                {"headline": "Initiating transmission to destination", "answers": ["sending", "dispatching", "transmitting", "forwarding"]},
+                {"headline": "Accepting inbound transfer", "answers": ["receiving", "getting", "obtaining", "acquiring"]},
+                {"headline": "Outbound transfer of possession", "answers": ["giving", "donating", "providing", "bestowing"]},
+                {"headline": "Inbound transfer of possession", "answers": ["taking", "grabbing", "seizing", "removing"]},
+                {"headline": "Fragmenting solid material", "answers": ["breaking", "shattering", "fracturing", "smashing"]},
+                {"headline": "Assembling constituent components", "answers": ["building", "constructing", "assembling", "erecting"]},
+                {"headline": "Contaminant removal process", "answers": ["cleaning", "washing", "purifying", "sanitizing"]},
+                {"headline": "Contaminant introduction process", "answers": ["dirtying", "soiling", "polluting", "contaminating"]}
+            ];
+
+            // Game state variables
+            let correctStreak = 0;
+            let lives = 3;
+            let currentPrompt = null;
+            let previousPrompts = []; // Keep track of recent prompts to avoid repetition
+
+            // Function to update the streak display and apply animations/colors
+            function updateStreak() {
+                correctStreakElement.textContent = correctStreak;
+                // Remove previous animation classes
+                streakContainer.classList.remove("streak-animation-1", "streak-animation-2", "streak-animation-3");
+
+                // Define color progression for the dark theme (extended)
+                let colorClass = 'text-gray-100'; // Default color
+                if (correctStreak >= 1) colorClass = 'text-red-400';
+                if (correctStreak >= 3) colorClass = 'text-orange-400';
+                if (correctStreak >= 5) colorClass = 'text-yellow-400';
+                if (correctStreak >= 7) colorClass = 'text-green-400';
+                if (correctStreak >= 9) colorClass = 'text-blue-400';
+                if (correctStreak >= 11) colorClass = 'text-indigo-400';
+                if (correctStreak >= 13) colorClass = 'text-violet-400';
+                if (correctStreak >= 15) colorClass = 'text-purple-400 font-extrabold';
+                if (correctStreak >= 20) colorClass = 'text-pink-400 font-extrabold'; // New color for higher streaks
+                if (correctStreak >= 30) colorClass = 'text-teal-400 font-extrabold'; // New color for higher streaks
+                if (correctStreak >= 40) colorClass = 'text-cyan-400 font-extrabold'; // New color for higher streaks
+                if (correctStreak >= 50) colorClass = 'text-yellow-300 font-extrabold'; // Special color for winning streak
+
+
+                // Apply the color class (remove previous text color classes first)
+                const existingClasses = Array.from(streakContainer.classList); // Use Array.from for safety
+                const nonTextColorClasses = existingClasses.filter(cls => !cls.startsWith('text-'));
+                streakContainer.className = nonTextColorClasses.join(' ');
+                // Re-add necessary Tailwind classes for styling (positioning is now handled by CSS rule)
+                streakContainer.classList.add('text-lg', 'font-bold', 'p-3', 'rounded-lg', 'bg-gray-700', 'shadow-md', 'border', 'border-gray-600'); // Removed text-gray-100 here
+                streakContainer.classList.add(colorClass); // Add the new color class
+
+
+                // Apply animations based on streak milestones (extended)
+                if (correctStreak >= 5 && correctStreak < 15) { // Extended range for animation 1
+                    streakContainer.classList.add("streak-animation-1");
+                } else if (correctStreak >= 15 && correctStreak < 30) { // Extended range for animation 2
+                    streakContainer.classList.add("streak-animation-2");
+                } else if (correctStreak >= 30) { // Animation 3 for streaks 30 and above
+                    streakContainer.classList.add("streak-animation-3");
+                }
+            }
+
+            // Function to update the lives display
+            function updateLivesDisplay() {
+                lifeElements.forEach((lifeElement, index) => {
+                    if (index < lives) {
+                        lifeElement.classList.remove('lost'); // Show skull
+                    } else {
+                        lifeElement.classList.add('lost'); // Show skull with X
+                    }
+                });
+            }
+
+            // Function to show feedback message above the restart button
+            function showFeedbackMessage(message, isCorrect) {
+                guessFeedbackMessage.innerHTML = message; // Use innerHTML to allow potential future styling
+                // Apply color based on correctness
+                if (isCorrect) {
+                    guessFeedbackMessage.className = 'mt-4 text-md sm:text-lg font-medium min-h-[1.5em] text-green-400'; // Correct guess color
+                } else {
+                    guessFeedbackMessage.className = 'mt-4 text-md sm:text-lg font-medium min-h-[1.5em] text-red-400'; // Incorrect guess color
+                }
+            }
+
+            // Function to clear the feedback message
+            function clearFeedbackMessage() {
+                guessFeedbackMessage.textContent = '';
+                guessFeedbackMessage.className = 'mt-4 text-md sm:text-lg font-medium min-h-[1.5em] text-gray-400'; // Reset to default color
+            }
+
+            // Function to load a new, unique prompt
+            function loadNewPrompt() {
+                let randomIndex;
+                let newPrompt;
+                // Ensure the new prompt hasn't been shown recently
+                if (previousPrompts.length >= promptsWithAnswers.length) {
+                    previousPrompts = []; // Reset if all prompts have been shown
+                }
+                do {
+                    randomIndex = Math.floor(Math.random() * promptsWithAnswers.length);
+                    newPrompt = promptsWithAnswers[randomIndex];
+                } while (previousPrompts.includes(newPrompt.headline));
+
+                currentPrompt = newPrompt;
+                headlineElement.textContent = currentPrompt.headline;
+                clearFeedbackMessage(); // Clear feedback message for new prompt
+                guessInput.value = ''; // Clear input
+                guessInput.focus(); // Focus on input for usability
+                submitButton.disabled = false; // Enable submit button
+                submitButton.classList.remove('opacity-50', 'cursor-not-allowed'); // Re-enable button style
+
+                // Add the new prompt to the list of shown prompts
+                previousPrompts.push(currentPrompt.headline);
+                // Limit the history size (e.g., remember the last 20 prompts)
+                if (previousPrompts.length > 20) {
+                    previousPrompts.shift(); // Remove the oldest prompt from history
+                }
+            }
+
+            // Function to check for plural forms (kept for robustness, though not strictly needed for showing answer)
+            function isPluralMatch(guess, answers) {
+                const lowerGuess = guess.toLowerCase();
+                for (const answer of answers) {
+                    const lowerAnswer = answer.toLowerCase();
+                    // Check exact match
+                    if (lowerGuess === lowerAnswer) {
+                        return true;
+                    }
+                    // Simple plural check: add 's' to the singular form
+                    if (lowerAnswer.endsWith('s') && lowerGuess === lowerAnswer.slice(0, -1)) {
+                         return true;
+                    }
+                     if (lowerGuess === lowerAnswer + 's') {
+                         return true;
+                    }
+                }
+                return false;
+            }
+
+
+            // Function to handle the guess submission
+            function handleGuess() {
+                // Only process if a prompt is loaded
+                if (currentPrompt) {
+                    const guess = guessInput.value.trim().toLowerCase();
+                    // Don't process empty guesses
+                    if (!guess) {
+                        showFeedbackMessage('Please enter a guess.', false); // Provide feedback for empty guess
+                        return; // Exit the function
+                    }
+
+                    const correctAnswers = currentPrompt.answers.map(answer => answer.toLowerCase());
+
+                    if (correctAnswers.includes(guess)) {
+                        // Correct Guess
+                        correctStreak++;
+                        showFeedbackMessage('Correct!', true);
+                        updateStreak();
+                        // Delay loading the next prompt slightly to allow feedback to be seen
+                        setTimeout(loadNewPrompt, 1000); // Load new prompt after 1 second
+
+                    } else {
+                        // Incorrect Guess
+                        lives--;
+                        updateLivesDisplay();
+                        correctStreak = 0; // Reset streak on incorrect guess
+                        updateStreak(); // Update streak display immediately
+
+                        let feedbackMessage = 'Incorrect.';
+                        // Show the correct answer(s)
+                        if (currentPrompt.answers.length === 1) {
+                            feedbackMessage += ` The answer was: ${currentPrompt.answers[0]}.`;
+                        } else {
+                            feedbackMessage += ` Possible answers were: ${currentPrompt.answers.join(', ')}.`;
+                        }
+                        showFeedbackMessage(feedbackMessage, false);
+
+                        if (lives <= 0) {
+                            endGame();
+                        } else {
+                             // Delay loading the next prompt slightly
+                             setTimeout(loadNewPrompt, 2000); // Load new prompt after 2 seconds
+                        }
+                    }
+                }
+            }
+
+            // Function to end the game
+            function endGame() {
+                headlineElement.textContent = 'Game Over!';
+                guessInput.disabled = true;
+                submitButton.disabled = true;
+                submitButton.classList.add('opacity-50', 'cursor-not-allowed'); // Disable button style
+                guessFeedbackMessage.textContent = `You lost all your lives. Your final streak was ${correctStreak}.`;
+                guessFeedbackMessage.style.color = '#f87171'; // Red
+            }
+
+            // Event listener for the submit button
+            submitButton.addEventListener('click', handleGuess);
+
+            // Event listener for pressing Enter in the input field
+            guessInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    handleGuess();
+                }
+            });
+
+            // Initial setup
+            loadNewPrompt(); // Load the first prompt
+            updateStreak(); // Initialize streak display
+            updateLivesDisplay(); // Initialize lives display
+        });
+    </script>
+</body>
+</html>

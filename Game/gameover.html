@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the Item! - Game Over</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+     <style>
+         body {
+            background-color: #111827; /* gray-900 */
+            font-family: sans-serif;
+            color: #e5e7eb; /* gray-200 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        #game-over-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+            min-height: calc(100vh - 2rem); /* Account for body padding */
+        }
+
+        #game-over-screen h2 {
+            font-size: 2.5rem; /* text-3xl */
+            font-weight: bold;
+            color: #ef4444; /* red-500 */
+            margin-bottom: 1rem;
+        }
+
+         /* Style for the win message */
+        .win-message {
+            font-size: 2.5rem; /* text-3xl */
+            font-weight: bold;
+            color: #34d399; /* green-400 */
+            margin-bottom: 1rem;
+        }
+
+
+        #game-over-screen p {
+            font-size: 1.5rem; /* text-2xl */
+            margin-bottom: 2rem;
+        }
+
+        #game-over-screen a { /* Changed button to anchor tag for linking */
+            background-color: #8b5cf6; /* purple-600 */
+            color: white;
+            font-weight: 600; /* font-semibold */
+            padding: 0.75rem 1.5rem; /* py-3 px-6 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            margin: 0.5rem;
+            text-decoration: none; /* Remove underline from link */
+            display: inline-block; /* Allow padding and transform */
+        }
+
+        #game-over-screen a:hover {
+            background-color: #7c3aed; /* purple-700 */
+            transform: scale(1.05);
+        }
+
+    </style>
+</head>
+<body>
+    <div id="game-over-screen">
+        <h2 id="game-over-message"></h2>
+        <p id="final-streak-display">Your final streak was: <span id="final-streak">0</span></p>
+        <a href="game.html" id="play-again-button">Play Again</a>
+        <a href="index.html" id="return-to-menu-button-gameover">Return to Main Menu</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameOverMessageElement = document.getElementById('game-over-message');
+            const finalStreakElement = document.getElementById('final-streak');
+
+            // Get streak and win status from the URL query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const finalStreak = urlParams.get('streak') || 0;
+            const isWin = urlParams.get('win') === 'true';
+
+            finalStreakElement.textContent = finalStreak;
+
+            if (isWin) {
+                gameOverMessageElement.textContent = 'You Win!';
+                gameOverMessageElement.classList.add('win-message'); // Apply win message style
+                 gameOverMessageElement.classList.remove('h2'); // Remove default h2 style if necessary
+            } else {
+                gameOverMessageElement.textContent = 'Game Over!';
+                 gameOverMessageElement.classList.remove('win-message'); // Remove win message style if necessary
+                 gameOverMessageElement.classList.add('h2'); // Add default h2 style if necessary
+            }
+
+            // Note: In a real multi-page app, you might pass more game state
+            // (like prompts shown) via URL parameters or server-side sessions.
+            // For this simple example, the game state is reset on page load.
+        });
+    </script>
+</body>
+</html>
