@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guess the Item! - Game Over</title>
+    <title>🔆 Synapsis - Game Over</title>
     <script src="https://cdn.tailwindcss.com"></script>
      <style>
          body {
@@ -20,34 +20,46 @@
             text-align: center;
         }
 
-        #game-over-screen {
-            display: flex;
+        /* Styles for the main content box - Reusing styling similar to index.html */
+        .content-box {
+            background-color: #1f2937; /* gray-800 - slightly lighter than body */
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 2rem; /* Add padding inside the shape */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-md */
+            display: flex; /* Use flexbox to center content inside */
             flex-direction: column;
             align-items: center;
             justify-content: center;
             width: 100%;
-            max-width: 600px;
+            max-width: 600px; /* Limit max width */
+            text-align: center;
             box-sizing: border-box;
-            min-height: calc(100vh - 2rem); /* Account for body padding */
         }
 
-        #game-over-screen h2 {
+        /* The main game over screen content - now inside the content-box */
+        #game-over-screen {
+             /* Removed display, flex-direction, align-items, justify-content, width, max-width, box-sizing, min-height */
+             /* These are now handled by the .content-box container */
+        }
+
+        #game-over-message { /* Use a specific ID for the message text */
             font-size: 2.5rem; /* text-3xl */
             font-weight: bold;
-            color: #ef4444; /* red-500 */
             margin-bottom: 1rem;
         }
 
          /* Style for the win message */
         .win-message {
-            font-size: 2.5rem; /* text-3xl */
-            font-weight: bold;
             color: #34d399; /* green-400 */
-            margin-bottom: 1rem;
+        }
+
+        /* Style for the game over message */
+        .gameover-message {
+            color: #ef4444; /* red-500 */
         }
 
 
-        #game-over-screen p {
+        #final-points-display { /* Updated ID for the paragraph displaying points */
             font-size: 1.5rem; /* text-2xl */
             margin-bottom: 2rem;
         }
@@ -73,38 +85,46 @@
     </style>
 </head>
 <body>
-    <div id="game-over-screen">
-        <h2 id="game-over-message"></h2>
-        <p id="final-streak-display">Your final streak was: <span id="final-streak">0</span></p>
-        <a href="game.html" id="play-again-button">Play Again</a>
-        <a href="index.html" id="return-to-menu-button-gameover">Return to Main Menu</a>
+    <div class="content-box">
+        <div id="game-over-screen">
+            <h2 id="game-over-message"></h2> <p id="final-points-display">Your final points were: <span id="final-points">0</span></p>
+            <a href="game.html" id="play-again-button">Play Again</a>
+            <a href="index.html" id="return-to-menu-button-gameover">Return to Main Menu</a>
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Get references to DOM elements
             const gameOverMessageElement = document.getElementById('game-over-message');
-            const finalStreakElement = document.getElementById('final-streak');
+            const finalPointsElement = document.getElementById('final-points'); // Updated ID reference
 
-            // Get streak and win status from the URL query parameters
+            // Get points and win status from the URL query parameters
             const urlParams = new URLSearchParams(window.location.search);
-            const finalStreak = urlParams.get('streak') || 0;
+            // Updated parameter name from 'streak' to 'points'
+            const finalPoints = urlParams.get('points') || 0;
             const isWin = urlParams.get('win') === 'true';
 
-            finalStreakElement.textContent = finalStreak;
+            console.log('Game Over Page Loaded');
+            console.log('Final points from URL:', finalPoints);
+            console.log('Is Win:', isWin);
 
+            // Display final points
+            finalPointsElement.textContent = finalPoints; // Updated ID reference
+
+            // Set message text and style based on win/loss
             if (isWin) {
                 gameOverMessageElement.textContent = 'You Win!';
-                gameOverMessageElement.classList.add('win-message'); // Apply win message style
-                 gameOverMessageElement.classList.remove('h2'); // Remove default h2 style if necessary
+                gameOverMessageElement.classList.add('win-message');
+                gameOverMessageElement.classList.remove('gameover-message'); // Ensure gameover class is removed
             } else {
                 gameOverMessageElement.textContent = 'Game Over!';
-                 gameOverMessageElement.classList.remove('win-message'); // Remove win message style if necessary
-                 gameOverMessageElement.classList.add('h2'); // Add default h2 style if necessary
+                 gameOverMessageElement.classList.remove('win-message'); // Ensure win class is removed
+                 gameOverMessageElement.classList.add('gameover-message'); // Add gameover class
             }
 
-            // Note: In a real multi-page app, you might pass more game state
-            // (like prompts shown) via URL parameters or server-side sessions.
-            // For this simple example, the game state is reset on page load.
+            // Note: Leaderboard submission functionality has been removed.
+            // The page now simply displays the result and provides navigation options.
         });
     </script>
 </body>

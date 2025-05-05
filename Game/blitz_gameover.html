@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔆 Synapsis - Blitz Game Over</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+     <style>
+         body {
+            background-color: #111827; /* gray-900 */
+            font-family: sans-serif;
+            color: #e5e7eb; /* gray-200 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* Styles for the main content box */
+        .content-box {
+            background-color: #1f2937; /* gray-800 - slightly lighter than body */
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 2rem; /* Add padding inside the shape */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-md */
+            display: flex; /* Use flexbox to center content inside */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px; /* Limit max width */
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        #game-over-screen {
+             /* Content inside the content-box */
+        }
+
+        #game-over-message {
+            font-size: 2.5rem; /* text-3xl */
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #ef4444; /* red-500 - Game Over color */
+        }
+
+        #final-points-display {
+            font-size: 1.5rem; /* text-2xl */
+            margin-bottom: 2rem;
+        }
+
+        #game-over-screen a { /* Styling for buttons/links */
+            background-color: #8b5cf6; /* purple-600 */
+            color: white;
+            font-weight: 600; /* font-semibold */
+            padding: 0.75rem 1.5rem; /* py-3 px-6 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            margin: 0.5rem;
+            text-decoration: none; /* Remove underline from link */
+            display: inline-block; /* Allow padding and transform */
+        }
+
+        #game-over-screen a:hover {
+            background-color: #7c3aed; /* purple-700 */
+            transform: scale(1.05);
+        }
+
+         /* Styling for Personal Best display */
+        #personal-best-container {
+            position: fixed;
+            top: 10px; /* Align with the top */
+            right: 10px; /* Position on the right */
+            left: auto; /* Remove left positioning */
+            z-index: 20;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background-color: #8b5cf6; /* Darker purple background */
+            color: #ffffff; /* White text color */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+         /* Style for the personal best value span */
+         #personal-best-container span {
+             color: #ffffff; /* Default white color for the number */
+         }
+
+    </style>
+</head>
+<body>
+    <div id="personal-best-container">
+        Personal Best: <span id="personal-best-points">0</span>
+    </div>
+
+    <div class="content-box">
+        <div id="game-over-screen">
+            <h2 id="game-over-message">Game Over!</h2> <p id="final-points-display">Your final points were: <span id="final-points">0</span></p>
+            <a href="blitz.html" id="play-again-button">Play Again (Blitz)</a> <a href="index.html" id="return-to-menu-button-gameover">Return to Main Menu</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get references to DOM elements
+            const finalPointsElement = document.getElementById('final-points');
+            const personalBestElement = document.getElementById('personal-best-points'); // Get personal best span
+
+            // Key for local storage
+            const PERSONAL_BEST_STORAGE_KEY = 'synapsisBlitzPersonalBest';
+
+            // Get final points from the URL query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const finalPoints = parseInt(urlParams.get('points') || 0, 10); // Ensure points are parsed as integer
+
+            console.log('Blitz Game Over Page Loaded');
+            console.log('Final points from URL:', finalPoints);
+
+            // Display final points
+            finalPointsElement.textContent = finalPoints;
+
+            // --- Personal Best Logic ---
+
+            // Load personal best from local storage
+            function loadPersonalBest() {
+                const personalBest = localStorage.getItem(PERSONAL_BEST_STORAGE_KEY);
+                // Parse as integer, default to 0 if not found or invalid
+                return parseInt(personalBest, 10) || 0;
+            }
+
+            // Save new personal best to local storage
+            function savePersonalBest(newBest) {
+                localStorage.setItem(PERSONAL_BEST_STORAGE_KEY, newBest);
+            }
+
+            // Get the current personal best
+            let personalBest = loadPersonalBest();
+
+            // Display the current personal best initially
+            personalBestElement.textContent = personalBest;
+
+            // Check if the current score is a new personal best
+            if (finalPoints > personalBest) {
+                personalBest = finalPoints; // Update personal best
+                savePersonalBest(personalBest); // Save the new personal best
+                personalBestElement.textContent = personalBest; // Update display
+                console.log('New Personal Best:', personalBest);
+                // Optional: Add a visual indication for a new personal best
+                // personalBestElement.parentElement.style.color = '#34d399'; // Green color for new best
+            } else {
+                 console.log('Current score is not a new personal best.');
+            }
+
+            // Note: The game over message is fixed as "Game Over!" for blitz mode.
+            // There is no 'win' condition based on points in blitz.
+        });
+    </script>
+</body>
+</html>

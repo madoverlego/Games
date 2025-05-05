@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guess the Item! - Welcome</title>
+    <title>🔆 Synapsis - Welcome</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -19,48 +19,108 @@
             box-sizing: border-box;
         }
 
-        #welcome-screen {
-            display: flex;
+        /* New style for the background shape container */
+        .content-box {
+            background-color: #1f2937; /* gray-800 - slightly lighter than body */
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 2rem; /* Add padding inside the shape */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-md */
+            display: flex; /* Use flexbox to center content inside */
             flex-direction: column;
             align-items: center;
             justify-content: center;
             width: 100%;
-            max-width: 600px;
+            max-width: 600px; /* Limit max width */
             text-align: center;
             box-sizing: border-box;
-            min-height: calc(100vh - 2rem); /* Account for body padding */
+        }
+
+
+        #welcome-screen {
+            /* This div now holds all the content */
+             display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%; /* Ensure it takes full width of container */
         }
 
         #welcome-screen h1 {
             font-size: 3rem; /* Larger title */
             font-weight: bold;
             color: #a78bfa; /* purple-400 */
-            margin-bottom: 2rem;
+            margin-bottom: 1rem; /* Adjusted margin */
         }
 
-        #welcome-screen a { /* Changed button to anchor tag for linking */
+        #welcome-screen p {
+            font-size: 1.125rem; /* text-lg */
+            color: #d1d5db; /* gray-300 */
+            margin-bottom: 2rem; /* Space below description */
+            max-width: 500px; /* Limit width for readability */
+        }
+
+        /* Container for the game mode buttons */
+        .game-modes {
+            display: flex;
+            flex-direction: column; /* Stack buttons vertically on small screens */
+            gap: 1rem; /* Space between buttons */
+            width: 100%; /* Take full width */
+            max-width: 300px; /* Limit button container width */
+            margin-top: 1rem; /* Space above buttons */
+        }
+
+        /* Styling for game mode buttons (Apply to anchor tags within game-modes) */
+        .game-modes a {
             background-color: #8b5cf6; /* purple-600 */
             color: white;
             font-weight: 600; /* font-semibold */
             padding: 1rem 2rem; /* Larger padding */
             border-radius: 0.5rem; /* rounded-lg */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.05); /* shadow-md */
             transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
             font-size: 1.25rem; /* Larger font size */
             text-decoration: none; /* Remove underline from link */
             display: inline-block; /* Allow padding and transform */
+             width: 100%; /* Make buttons take full width of their container */
+             box-sizing: border-box; /* Include padding in width */
         }
 
-        #welcome-screen a:hover {
+        .game-modes a:hover {
             background-color: #7c3aed; /* purple-700 */
             transform: scale(1.05);
         }
+
+        /* Responsive adjustment for buttons */
+        @media (min-width: 640px) { /* Tailwind's 'sm' breakpoint */
+            .game-modes {
+                flex-direction: row; /* Arrange buttons horizontally on larger screens */
+                max-width: none; /* Remove max width constraint */
+                 justify-content: center; /* Center buttons horizontally */
+            }
+             .game-modes a {
+                 width: auto; /* Auto width for horizontal layout */
+             }
+        }
+
+
     </style>
 </head>
 <body>
-    <div id="welcome-screen">
-        <h1>Guess the Item!</h1>
-        <a href="game.html">Start Game</a>
+    <div id="welcome-container" class="content-box">
+        <div id="welcome-screen">
+            <h1>Synapsis</h1>
+            <p>Guess the everyday item based on its business-style product description.</p>
+
+            <div class="game-modes">
+                <a href="game.html">Start Standard Game</a>
+                <a href="blitz.html">Start Blitz Round</a> </div>
+
+        </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Welcome Page Loaded');
+        });
+    </script>
 </body>
 </html>
